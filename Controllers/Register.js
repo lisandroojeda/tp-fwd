@@ -1,35 +1,54 @@
-const bcrypt = require("bcrypt")
-const Users = require("../Models/Users")
+const bcrypt = require("bcrypt");
+const User = require("../Models/Users");
+const jwt = require("jsonwebtoken");
 
+const SECRET = "AKLSJD129EDM42WDNSCIS";
 
+const register = async (req, res) => {
+  const { email, pass, name, token } = req.body;
+  try {
+    const userFound = await User.findOne({ email });
+    if (userFound)
+      return res.status(400).json({ message: "Email ya registrado" });
 
-const register = async (req,res) => {
-    const {name,email,pass} =req.body
+    const hash = await bcrypt.hash(pass, 10);
 
-    Users.findOne({email}).then((user)=> {
-        if(user){ // si el usuario existe 
-            return res.json({mensaje: "Email ya registrado en nuestro sistema"}) 
-        }else if(!name || !email || !pass){ //si algún campo no esta completo informo y aborto
-            return res.json({mensaje:"Falta completar un campo"})
-        }else {
-            bcrypt.hash(pass,10,(error,passHash) =>{ //hasheo la contraseña 
-                if (error){
-                    res.json(error)
-                }else {  //creo el nuevo usuario
-                    const newUser = new Users ({
-                        name,
-                        email,
-                        pass : passHash,
-                    })
-                    newUser.save()
-                    .then((user)=>{
-                        res.json({mensaje:"Usuario creado correctamente",user}) //crea el usuario y lo devuelve
-                    })
-                    .catch((error) => console.error(error)) // capturamos en caso que exista el error y lo mandamos al console.log
-                }
-            });
-        }
-});
-}
+    const newUser = new User({
+      email,
+      pass: hash,
+      name,
+      token,
+    });
 
-module.exports = register
+    const userSaved = await newUser.save();
+
+    jwt.sign(
+      { id: userSaved._id },
+      SECRET,
+      { expiresIn: "1d" },
+      (err, token) => {
+        if (err) console.log(err);
+        res.cookie("token", token, {
+          httpOnly: process.env.NODE_ENV !== "development",
+          secure: true,
+          sameSite: "none",
+        });
+        userSaved.token = token;
+        res.json({
+          message: "Usuario Encontrado",
+        });
+      }
+    ); // token
+
+    res.json({
+      id: userSaved._id,
+      name: userSaved.name,
+      email: userSaved.email,
+      token: userSaved.token,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = register;

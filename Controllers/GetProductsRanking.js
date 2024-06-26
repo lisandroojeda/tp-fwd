@@ -1,8 +1,8 @@
 const Product = require("../Models/Products");
-const Types = require("../Models/Types");
 
-const getProducts = async (req, res) => {
-  const products = await Product.find();//vusco si hay productos
+
+const getProductsRanking = async (req, res) => {
+  const products = await Product.find().sort({amountInTime:-1}).limit(3);//vusco si hay productos
   if (products) {
    // const type = await Types.findById(pr)
     res.json({ products });
@@ -11,4 +11,4 @@ const getProducts = async (req, res) => {
   }
 };
 
-module.exports = getProducts;
+module.exports = getProductsRanking;

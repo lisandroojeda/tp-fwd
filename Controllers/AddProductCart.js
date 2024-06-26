@@ -2,7 +2,7 @@ const Cart = require("../Models/Cart");
 const Product = require("../Models/Products");
 
 const addProductCart = async (req, res) => {
-  const { name, img, price,type,rice,accessories } = req.body;
+  const { name, img, price } = req.body;
 
   /* Nos fijamos si tenemos el producto */
   const estaEnProducts = await Product.findOne({ name });
@@ -26,7 +26,7 @@ const addProductCart = async (req, res) => {
     /* Y actualizamos la prop inCart: true en nuestros productos */
     await Product.findByIdAndUpdate(
       estaEnProducts?._id,
-      { inCart: true, name, img, price,type,rice,accessories },
+      { inCart: true, name, img, price},
       { new: true }
     )
       .then((product) => {

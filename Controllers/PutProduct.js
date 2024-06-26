@@ -1,5 +1,6 @@
 const Cart = require("../Models/Cart");
 
+
 const putProduct = async (req, res) => {
   const { productId } = req.params;
   const { query } = req.query;
@@ -15,7 +16,7 @@ const putProduct = async (req, res) => {
     /* Si esta el producto en el carrito y quiero agregar */
   } else if (productBuscado && query === "add") {
     body.amount = body.amount + 1;
-
+    
     await Cart.findByIdAndUpdate(productId, body, {
       new: true,
     }).then((product) => {
